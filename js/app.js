@@ -44,8 +44,6 @@ async function startApplication() {
         }
 
         // Initialise the active Python game state
-        gameAPI.load_game(savedData);
-
         try {
             gameAPI.load_game(savedData);
         } catch (error) {
@@ -67,11 +65,11 @@ async function startApplication() {
         //Activate game saving
         saveButton.disabled = false;
         startAutosave();
-        
-        document.addEventListener(
-            "visibilitychange",
-            handleVisibilityChange
-        );
+
+        // document.addEventListener(
+        //     "visibilitychange",
+        //     handleVisibilityChange
+        // );
 
         updateStatus("Game loaded successfully!");
 
