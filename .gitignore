@@ -224,3 +224,6 @@ venv/
 
 # Generated website
 _site/
+
+# Development/Local site
+.devsite/

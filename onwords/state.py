@@ -8,6 +8,7 @@ def get_current_version():
 
 def get_supported_versions():
     return [0,]
+
 def get_initial_state():
     state = {
         "version":get_current_version(),
@@ -19,7 +20,7 @@ def get_initial_state():
 def load_state(saved_data):
     state = deserialise(saved_data)
     validate_state(state)
-    
+
     global _game_state
     _game_state = state
 

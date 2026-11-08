@@ -8,14 +8,55 @@
 
     <script defer src="https://cdn.jsdelivr.net/pyodide/v0.29.5/full/pyodide.js"></script>
     <script type="module" src="./js/app.js"></script>
+    
+    <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
     <h1>OnWords &amp; UpWords!</h1>
     <p id="load-status">Python is loading...</p>
 
-    <button id="save-button" type="button" disabled>
-        Save Game
-    </button>
-    <p id="save-status"></p>
+<details class="settings-menu">
+    <summary>⚙ Settings</summary>
+
+    <div class="settings-content">
+
+        <details class="menu">
+            <summary>Save Options</summary>
+
+            <div class="menu-content">
+                <button id="save-button" class="tile-button" type="button" disabled>
+                    <span>Save</span>
+                    <span class="tile-score">1</span>
+                </button>
+
+                <button id="export-button" class="tile-button" type="button" disabled>
+                    <span>Export</span>
+                    <span class="tile-score">2</span>
+                </button>
+
+                <button id="import-button" class="tile-button" type="button" disabled>
+                    <span>Import</span>
+                    <span class="tile-score">4</span>
+                </button>
+
+                <button id="reset-button" class="danger-button tile-button" type="button" disabled>
+                    <span>Reset</span>
+                    <span class="tile-score">10</span>
+                </button>
+
+                <input
+                    type="file"
+                    id="import-file"
+                    accept=".json,application/json"
+                    hidden
+                >
+
+                <p id="save-status"></p>
+            </div>
+        </details>
+
+    </div>
+</details>
+
 </body>
 </html>
