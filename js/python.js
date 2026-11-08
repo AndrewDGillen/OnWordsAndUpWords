@@ -1,8 +1,7 @@
-async function initialisePython() {
-    const status = document.getElementById("python-status");
+async function initialisePython(onStatusChange = () => {}) {
 
     try {
-        status.textContent = "Loading Python...";
+        onStatusChange("Loading Python...");
 
         const pyodide = await loadPyodide();
 
@@ -31,7 +30,7 @@ async function initialisePython() {
         ).href;
 
         // Install Python package
-        status.textContent = "Installing game package...";
+        onStatusChange("Installing game package...");
 
         await micropip.install(wheelUrl);
 
@@ -41,14 +40,21 @@ async function initialisePython() {
             test_python()
         `);
 
-        status.textContent =
-            `Python Result: ${result}`;
+        onStatusChange("Python ready");
+        return pyodide;
 
     } catch (error) {
         console.error("Python initialisation failed:", error);
-
-        status.textContent = "Python initialisation failed.";
+        throw error;
     }
 }
 
-initialisePython();
+let pythonPromise = null;
+
+export function getPython(onStatusChange) {
+    if (pythonPromise === null) {
+        pythonPromise = initialisePython(onStatusChange);
+    }
+
+    return pythonPromise;
+}
