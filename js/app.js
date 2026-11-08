@@ -3,40 +3,39 @@ import { saveGame, loadGame } from "./storage.js";
 
 const status = document.getElementById("load-status");
 
-//Ensures we can update the message based on python status
+//Variables for saving
+const SAVE_KEY = "onwords-save";
+const savestatus = document.getElementById("save-status");
+const saveButton = document.getElementById("save-button");
+const AUTOSAVE_INTERVAL = 30_000; // 30 seconds in milliseconds
+let autosaveTimer = null;
+
+let gameAPI = null;
+
 function updateStatus(message) {
     status.textContent = message;
 }
+function saveStatus(message) {
+    savestatus.textContent = message;
+}
 
-//Starts the app
 async function startApplication() {
     try {
-        //first we load and test python
+        // Initialise Python and install the game package
         const pyodide = await getPython(updateStatus);
 
-        const result = pyodide.runPython(`
-            from onwords.test import test_python
-            test_python()
-        `);
+        // Import the Python game API
+        gameAPI = pyodide.pyimport("onwords.api");
 
-        updateStatus(`Python Result: ${result}`);
-        
-        //Then we deal with loading saved data
-        const SAVE_KEY = "onwords-save";
+        updateStatus("Loading game...");
 
+        // Check for an existing save
         let savedData = loadGame(SAVE_KEY);
 
+        // Create a new game if no save exists
         if (savedData === null) {
+            savedData = gameAPI.new_game();
 
-            // No existing save: create an initial state
-            savedData = pyodide.runPython(`
-                from onwords.state import get_initial_state
-                from onwords.save import serialise
-
-                serialise(get_initial_state())
-            `);
-
-            // Persist the initial state
             const didSave = saveGame(SAVE_KEY, savedData);
 
             if (!didSave) {
@@ -44,29 +43,73 @@ async function startApplication() {
             }
         }
 
-        // Pass the JSON string into Python
-        pyodide.globals.set("savedData", savedData);
+        // Initialise the active Python game state
+        gameAPI.load_game(savedData);
 
-        // Initialise the active game state
-        pyodide.runPython(`
-            from onwords.state import load_state
-            load_state(savedData)
-        `);
-
-        // Verify the state
-        const gameState = pyodide.runPython(`
-            from onwords.state import get_save_data
-            get_save_data()
-        `);
-
-        console.log("Active game state:", gameState);
+        // Confirm successful initialisation
+        console.log(
+            "Active game state:",
+            gameAPI.get_game_data()
+        );
+        
+        //Activate game saving
+        saveButton.disabled = false;
+        startAutosave();
 
         updateStatus("Game loaded successfully!");
 
     } catch (error) {
         console.error("Application startup failed:", error);
-        throw error;
+        updateStatus("Failed to start application.");
     }
 }
 
+function saveCurrentGame(message) {
+    if (gameAPI === null) {
+        throw new Error("Game has not been initialised.");
+    }
+
+    const savedData = gameAPI.save_game();
+
+    const didSave = saveGame(SAVE_KEY, savedData);
+
+    if (!didSave) {
+        console.warn("Unable to persist game state.");
+        updateStatus("Failed to save game.");
+        return false;
+    }
+
+    console.log("Game saved:", savedData);
+    saveStatus(message);
+
+    return true;
+}
+
+//Starts the autosave function
+function startAutosave() {
+    if (autosaveTimer !== null) {
+        return;
+    }
+
+    autosaveTimer = setInterval(() => {
+        try {
+            saveCurrentGame("Game automatically saved");
+        } catch (error) {
+            console.error("Autosave failed:", error);
+        }
+    }, AUTOSAVE_INTERVAL);
+}
+
+//ACTUAL RUNNING
+
 startApplication();
+
+//Listener for manual game saving
+saveButton.addEventListener("click", () => {
+    try {
+        saveCurrentGame("Game saved successfully!");
+    } catch (error) {
+        console.error("Saving failed:", error);
+        saveStatus("Failed to save game.");
+    }
+});
