@@ -4,7 +4,7 @@ async function initialisePython() {
     try {
         const pyodide = await loadPyodide();
 
-        const response = await fetch("./python/test.py");
+        const response = await fetch("./Python/test.py");
 
         if (!response.ok) {
             throw new Error(`Failed to load Python: ${response.status}`);
