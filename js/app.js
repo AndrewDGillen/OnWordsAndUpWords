@@ -46,6 +46,18 @@ async function startApplication() {
         // Initialise the active Python game state
         gameAPI.load_game(savedData);
 
+        try {
+            gameAPI.load_game(savedData);
+        } catch (error) {
+            console.error("Invalid save data:", error);
+
+            updateStatus(
+                "Unable to load saved game. Your current save has been preserved."
+            );
+
+            return;
+        }
+
         // Confirm successful initialisation
         console.log(
             "Active game state:",
@@ -55,6 +67,11 @@ async function startApplication() {
         //Activate game saving
         saveButton.disabled = false;
         startAutosave();
+        
+        document.addEventListener(
+            "visibilitychange",
+            handleVisibilityChange
+        );
 
         updateStatus("Game loaded successfully!");
 
@@ -98,6 +115,19 @@ function startAutosave() {
             console.error("Autosave failed:", error);
         }
     }, AUTOSAVE_INTERVAL);
+}
+
+//Deals with tab outs - we always save on tab switching
+function handleVisibilityChange() {
+    if (document.visibilityState === "hidden") {
+        try {
+            if (gameAPI !== null) {
+                saveCurrentGame("Game saved automatically");
+            }
+        } catch (error) {
+            console.error("Failed to save on page hide:", error);
+        }
+    }
 }
 
 //ACTUAL RUNNING
